@@ -1,0 +1,26 @@
+{
+  "name": "phpdevcommunity/psr11-dependency-injection",
+  "description": "A lightweight PHP Dependency Injection Container implementing the PSR-11 standard. This library is designed for simplicity and ease of use, making it an ideal choice for small projects where you need a quick and effective DI solution.",
+  "type": "library",
+  "require": {
+    "php": ">=7.4",
+    "psr/container": "^2.0.0"
+  },
+  "require-dev": {
+    "phpdevcommunity/unitester": "^0.1.0@alpha"
+  },
+  "minimum-stability": "alpha",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "PhpDevCommunity\\DependencyInjection\\": "src",
+      "Test\\PhpDevCommunity\\DependencyInjection\\": "tests"
+    }
+  },
+  "authors": [
+    {
+      "name": "F. Michel",
+      "homepage": "https://www.phpdevcommunity.com"
+    }
+  ]
+}
