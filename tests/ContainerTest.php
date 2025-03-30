@@ -28,10 +28,14 @@ class ContainerTest extends \PhpDevCommunity\UniTester\TestCase
 
     protected function execute(): void
     {
-      $this->testDefinition();
-      $this->testNotFoundClass();
-      $this->testNotFoundParameter();
-
+        $this->testDefinition();
+        $this->testNotFoundClass();
+        $this->testNotFoundParameter();
+        $this->testVariableExtractionAndReplacement();
+        $this->testVariableReplacementWithMissingValues();
+        $this->testNestedVariableReplacement();
+        $this->testVariableReplacementWithSpecialCharacters();
+        $this->testNoVariableToReplace();
     }
 
     public function testDefinition()
@@ -82,5 +86,60 @@ class ContainerTest extends \PhpDevCommunity\UniTester\TestCase
         $this->expectException(NotFoundException::class, function () use ($container) {
             $container->get('database.user');
         });
+    }
+
+    public function testVariableExtractionAndReplacement()
+    {
+        $container = new Container([
+            'database.host' => '127.0.0.1',
+            'database.port' => '3306',
+            'database.user' => 'root',
+            'database.dsn' => 'mysql://${database.user}@${database.host}:${database.port}/mydb'
+        ]);
+
+        $this->assertEquals('mysql://root@127.0.0.1:3306/mydb', $container->get('database.dsn'));
+    }
+
+    public function testVariableReplacementWithMissingValues()
+    {
+        $container = new Container([
+            'database.host' => '127.0.0.1',
+            'database.dsn' => 'mysql://${database.user}@${database.host}:${database.port}/mydb'
+        ]);
+
+
+        $this->expectException(NotFoundException::class, function () use ($container) {
+            $container->get('database.dsn');
+        });
+    }
+
+    public function testNestedVariableReplacement()
+    {
+        $container = new Container([
+            'base.url' => '127.0.0.1',
+            'api.url' => 'http://${base.url}/api',
+            'api.endpoint' => '${api.url}/v1/resource'
+        ]);
+
+        $this->assertEquals('http://127.0.0.1/api/v1/resource', $container->get('api.endpoint'));
+    }
+
+    public function testVariableReplacementWithSpecialCharacters()
+    {
+        $container = new Container([
+            'user.name' => 'admin@domain.com',
+            'database.dsn' => 'mysql://${user.name}:pass@localhost/db'
+        ]);
+        $this->assertEquals('mysql://admin@domain.com:pass@localhost/db', $container->get('database.dsn'));
+    }
+
+    public function testNoVariableToReplace()
+    {
+        $container = new Container([
+            'app.name' => 'MySuperApp'
+        ]);
+
+        // Aucune substitution ne doit être faite
+        $this->assertEquals('MySuperApp', $container->get('app.name'));
     }
 }

@@ -50,6 +50,14 @@ class Container implements ContainerInterface
             $value = $this->resolve($id);
         }
 
+        if (is_string($value)) {
+            $parameters = $this->extractBracedWords($value);
+            foreach ($parameters as $parameter) {
+                $parameterValue = $this->get($parameter);
+                $value = str_replace('${' . $parameter . '}', $parameterValue, $value);
+            }
+        }
+
         $this->resolvedEntries[$id] = $value;
         return $value;
     }
@@ -90,5 +98,21 @@ class Container implements ContainerInterface
         }
 
         throw new ContainerException("Autowiring is disabled, resolver is missing");
+    }
+
+    private function extractBracedWords(string $value): array
+    {
+        $results = [];
+        $start = 0;
+
+        while (($start = strpos($value, '${', $start)) !== false) {
+            $end = strpos($value, '}', $start);
+            if ($end === false) break;
+
+            $results[] = substr($value, $start + 2, $end - $start - 2);
+            $start = $end + 1;
+        }
+
+        return array_map('trim', $results);
     }
 }

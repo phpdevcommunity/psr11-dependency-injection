@@ -79,6 +79,43 @@ $myService = $container->get(MyService::class);
 var_dump($myService); // Outputs: object(MyService)
 ```
 
+
+### 4. Variable Replacement in Configuration
+
+This container also supports the replacement of variables in configuration values. This is useful when you want to store environment-specific settings, like database credentials, that can reference other configuration parameters. You can define variables in your configuration files that are automatically replaced when the container retrieves a service.
+
+#### Example: Variable Replacement
+
+```php
+<?php
+
+use Psr\Container\ContainerInterface;
+
+return [
+    'database.host' => '127.0.0.1',
+    'database.port' => '3306',
+    'database.user' => 'root',
+    'database.dsn'  => 'mysql://${database.user}@${database.host}:${database.port}/mydb',
+];
+```
+
+In this example, the `database.dsn` value contains references to other configuration keys. When you retrieve this value from the container, the variables are automatically replaced with their corresponding values, resulting in the correct `dsn` for connecting to the database:
+
+```php
+<?php
+
+use PhpDevCommunity\DependencyInjection\Container;
+
+$services = require 'services.php';
+$container = new Container($services);
+
+// Retrieve the database DSN with variables replaced
+$dsn = $container->get('database.dsn');
+echo $dsn; // Outputs: mysql://root@127.0.0.1:3306/mydb
+```
+
+This makes it easy to manage complex configurations that depend on other configuration values.
+
 ## Contributing
 
 Contributions are welcome! Feel free to open issues or submit pull requests to help improve the library.
