@@ -54,7 +54,7 @@ class Container implements ContainerInterface
             $parameters = $this->extractBracedWords($value);
             foreach ($parameters as $parameter) {
                 $parameterValue = $this->get($parameter);
-                $value = str_replace('${' . $parameter . '}', $parameterValue, $value);
+                $value = str_replace('#{' . $parameter . '}', $parameterValue, $value);
             }
         }
 
@@ -105,7 +105,7 @@ class Container implements ContainerInterface
         $results = [];
         $start = 0;
 
-        while (($start = strpos($value, '${', $start)) !== false) {
+        while (($start = strpos($value, '#{', $start)) !== false) {
             $end = strpos($value, '}', $start);
             if ($end === false) break;
 

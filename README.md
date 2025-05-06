@@ -95,7 +95,7 @@ return [
     'database.host' => '127.0.0.1',
     'database.port' => '3306',
     'database.user' => 'root',
-    'database.dsn'  => 'mysql://${database.user}@${database.host}:${database.port}/mydb',
+    'database.dsn'  => 'mysql://#{database.user}@#{database.host}:#{database.port}/mydb',
 ];
 ```
 

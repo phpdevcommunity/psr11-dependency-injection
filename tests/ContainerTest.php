@@ -94,7 +94,7 @@ class ContainerTest extends \PhpDevCommunity\UniTester\TestCase
             'database.host' => '127.0.0.1',
             'database.port' => '3306',
             'database.user' => 'root',
-            'database.dsn' => 'mysql://${database.user}@${database.host}:${database.port}/mydb'
+            'database.dsn' => 'mysql://#{database.user}@#{database.host}:#{database.port}/mydb'
         ]);
 
         $this->assertEquals('mysql://root@127.0.0.1:3306/mydb', $container->get('database.dsn'));
@@ -104,7 +104,7 @@ class ContainerTest extends \PhpDevCommunity\UniTester\TestCase
     {
         $container = new Container([
             'database.host' => '127.0.0.1',
-            'database.dsn' => 'mysql://${database.user}@${database.host}:${database.port}/mydb'
+            'database.dsn' => 'mysql://#{database.user}@#{database.host}:#{database.port}/mydb'
         ]);
 
 
@@ -117,8 +117,8 @@ class ContainerTest extends \PhpDevCommunity\UniTester\TestCase
     {
         $container = new Container([
             'base.url' => '127.0.0.1',
-            'api.url' => 'http://${base.url}/api',
-            'api.endpoint' => '${api.url}/v1/resource'
+            'api.url' => 'http://#{base.url}/api',
+            'api.endpoint' => '#{api.url}/v1/resource'
         ]);
 
         $this->assertEquals('http://127.0.0.1/api/v1/resource', $container->get('api.endpoint'));
@@ -128,7 +128,7 @@ class ContainerTest extends \PhpDevCommunity\UniTester\TestCase
     {
         $container = new Container([
             'user.name' => 'admin@domain.com',
-            'database.dsn' => 'mysql://${user.name}:pass@localhost/db'
+            'database.dsn' => 'mysql://#{user.name}:pass@localhost/db'
         ]);
         $this->assertEquals('mysql://admin@domain.com:pass@localhost/db', $container->get('database.dsn'));
     }
