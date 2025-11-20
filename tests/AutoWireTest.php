@@ -7,7 +7,7 @@ namespace Test\PhpDevCommunity\DependencyInjection;
 use PhpDevCommunity\DependencyInjection\Container;
 use PhpDevCommunity\DependencyInjection\Exception\ContainerException;
 use PhpDevCommunity\DependencyInjection\ReflectionResolver;
-use PhpDevCommunity\UniTester\TestCase;
+use Depo\UniTester\TestCase;
 use Test\PhpDevCommunity\DependencyInjection\TestClass\Database;
 use  Test\PhpDevCommunity\DependencyInjection\TestClass\LazyService;
 use  Test\PhpDevCommunity\DependencyInjection\TestClass\Mailer;

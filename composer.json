@@ -7,9 +7,8 @@
     "psr/container": "^2.0.0"
   },
   "require-dev": {
-    "phpdevcommunity/unitester": "^0.1.0@alpha"
+    "depo/unitester": "^1.0.0"
   },
-  "minimum-stability": "alpha",
   "license": "MIT",
   "autoload": {
     "psr-4": {

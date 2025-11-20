@@ -1,125 +1,209 @@
 # PSR-11 Dependency Injection Container
 
-A lightweight PHP Dependency Injection Container implementing the PSR-11 standard. This library is designed for simplicity and ease of use, making it an ideal choice for small projects where you need a quick and effective DI solution.
+[English](#english) | [Français](#français)
 
-## Installation
+---
+
+<a name="english"></a>
+## English
+
+A lightweight PHP Dependency Injection Container implementing the PSR-11 standard. This library is designed for simplicity, performance, and ease of use.
+
+### Features
+- **PSR-11 Compliant**: Interoperable with other libraries.
+- **Autowiring**: Automatically resolves dependencies using Reflection.
+- **Compilation/Caching**: Compiles definitions to plain PHP for zero-overhead production performance.
+- **Parameter Resolution**: Supports `#{variable}` syntax in strings.
+
+### Installation
 
 ```bash
 composer require phpdevcommunity/psr11-dependency-injection
 ```
 
-## Usage
+### Usage
 
-### 1. Define Your Services
+#### 1. Basic Usage (ContainerBuilder)
 
-Create a `services.php` file where you can define the parameters and services your application needs:
+The `ContainerBuilder` is the recommended way to create your container.
 
 ```php
-<?php
+use PhpDevCommunity\DependencyInjection\ContainerBuilder;
 
-use Psr\Container\ContainerInterface;
+$builder = new ContainerBuilder();
 
-return [
-    'database.host' => '127.0.0.1',
-    'database.port' => null,
-    'database.name' => 'my_database',
-    'database.user' => 'root',
-    'database.password' => null,
-    'google.key' => 'YQ4FcwaXD165Xm72lx53qzzNzkz7AUUN',
-    PDO::class => static function (ContainerInterface $container) {
+// Add definitions
+$builder->addDefinitions([
+    'database.host' => 'localhost',
+    'database.name' => 'app_db',
+    PDO::class => function ($c) {
         return new PDO(
-            sprintf('mysql:host=%s;dbname=%s;', $container->get('database.host'), $container->get('database.name')),
-            $container->get('database.user'),
-            $container->get('database.password'),
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+            "mysql:host={$c->get('database.host')};dbname={$c->get('database.name')}",
+            "root",
+            ""
         );
-    },
-];
-```
+    }
+]);
 
-### 2. Create and Use the Container
+$container = $builder->build();
 
-Instantiate the `Container` class with your service definitions and retrieve your services:
-
-```php
-<?php
-
-use PhpDevCommunity\DependencyInjection\Container;
-
-$services = require 'services.php';
-$container = new Container($services);
-
-// Retrieve the PDO instance
 $pdo = $container->get(PDO::class);
-var_dump($pdo); // Outputs: object(PDO)[18]
-
-// Retrieve a simple configuration value
-$googleKey = $container->get('google.key');
-var_dump($googleKey); // Outputs: YQ4FcwaXD165Xm72lx53qzzNzkz7AUUN
 ```
 
-### 3. Autowiring
+#### 2. Autowiring
 
-This library includes support for **autowiring**, allowing the container to automatically resolve class dependencies without the need for manual service definitions. The `ReflectionResolver` class leverages PHP’s Reflection API to inspect the constructor of a class and inject the necessary dependencies.
-
-#### Example: Using Autowiring
+You don't need to define every class manually. If a class exists, the container will try to instantiate it and inject its dependencies automatically.
 
 ```php
-<?php
+class Mailer {
+    // ...
+}
 
-use PhpDevCommunity\DependencyInjection\Container;
-use PhpDevCommunity\DependencyInjection\ReflectionResolver;
-use App\Service\MyService;
+class UserManager {
+    public function __construct(Mailer $mailer) {
+        $this->mailer = $mailer;
+    }
+}
 
-$services = require 'services.php';
-$container = new Container($services, new ReflectionResolver());
+// No definitions needed!
+$container = (new ContainerBuilder())->build();
 
-// Automatically resolve MyService and its dependencies
-$myService = $container->get(MyService::class);
-var_dump($myService); // Outputs: object(MyService)
+$userManager = $container->get(UserManager::class);
 ```
 
+#### 3. Production Performance (Caching)
 
-### 4. Variable Replacement in Configuration
+In production, using Reflection for every request is slow. You can enable compilation to generate a PHP file containing all your definitions and resolved dependencies.
 
-This container also supports the replacement of variables in configuration values. This is useful when you want to store environment-specific settings, like database credentials, that can reference other configuration parameters. You can define variables in your configuration files that are automatically replaced when the container retrieves a service.
-
-#### Example: Variable Replacement
+**How it works:**
+1. The first time, it inspects your code and generates a PHP file.
+2. Subsequent requests load this file directly, bypassing Reflection entirely.
 
 ```php
-<?php
+$builder = new ContainerBuilder();
+$builder->addDefinitions([/* ... */]);
 
-use Psr\Container\ContainerInterface;
+// Enable compilation
+// Ideally, do this only in production or when the cache file doesn't exist
+$builder->enableCompilation(__DIR__ . '/var/cache/container.php');
 
-return [
-    'database.host' => '127.0.0.1',
-    'database.port' => '3306',
-    'database.user' => 'root',
-    'database.dsn'  => 'mysql://#{database.user}@#{database.host}:#{database.port}/mydb',
-];
+$container = $builder->build();
 ```
 
-In this example, the `database.dsn` value contains references to other configuration keys. When you retrieve this value from the container, the variables are automatically replaced with their corresponding values, resulting in the correct `dsn` for connecting to the database:
+> **Note:** The compiler recursively discovers and compiles all dependencies for "total" resolution caching.
+
+#### 4. Variable Replacement
+
+You can use placeholders in your string definitions.
 
 ```php
-<?php
-
-use PhpDevCommunity\DependencyInjection\Container;
-
-$services = require 'services.php';
-$container = new Container($services);
-
-// Retrieve the database DSN with variables replaced
-$dsn = $container->get('database.dsn');
-echo $dsn; // Outputs: mysql://root@127.0.0.1:3306/mydb
+$builder->addDefinitions([
+    'app.path' => '/var/www/html',
+    'app.log_file' => '#{app.path}/var/log/app.log',
+]);
 ```
 
-This makes it easy to manage complex configurations that depend on other configuration values.
+---
 
-## Contributing
+<a name="français"></a>
+## 🇫🇷 Français
 
-Contributions are welcome! Feel free to open issues or submit pull requests to help improve the library.
+Un conteneur d'injection de dépendances PHP léger implémentant le standard PSR-11. Cette bibliothèque est conçue pour la simplicité, la performance et la facilité d'utilisation.
+
+### Fonctionnalités
+- **Compatible PSR-11** : Interopérable avec d'autres bibliothèques.
+- **Autowiring** : Résout automatiquement les dépendances via la Réflexion.
+- **Compilation/Cache** : Compile les définitions en PHP pur pour des performances maximales en production.
+- **Résolution de paramètres** : Supporte la syntaxe `#{variable}` dans les chaînes.
+
+### Installation
+
+```bash
+composer require phpdevcommunity/psr11-dependency-injection
+```
+
+### Utilisation
+
+#### 1. Utilisation de base (ContainerBuilder)
+
+Le `ContainerBuilder` est la méthode recommandée pour créer votre conteneur.
+
+```php
+use PhpDevCommunity\DependencyInjection\ContainerBuilder;
+
+$builder = new ContainerBuilder();
+
+// Ajouter des définitions
+$builder->addDefinitions([
+    'database.host' => 'localhost',
+    'database.name' => 'app_db',
+    PDO::class => function ($c) {
+        return new PDO(
+            "mysql:host={$c->get('database.host')};dbname={$c->get('database.name')}",
+            "root",
+            ""
+        );
+    }
+]);
+
+$container = $builder->build();
+
+$pdo = $container->get(PDO::class);
+```
+
+#### 2. Autowiring (Injection Automatique)
+
+Vous n'avez pas besoin de définir chaque classe manuellement. Si une classe existe, le conteneur essaiera de l'instancier et d'injecter ses dépendances automatiquement.
+
+```php
+class Mailer {
+    // ...
+}
+
+class UserManager {
+    public function __construct(Mailer $mailer) {
+        $this->mailer = $mailer;
+    }
+}
+
+// Aucune définition nécessaire !
+$container = (new ContainerBuilder())->build();
+
+$userManager = $container->get(UserManager::class);
+```
+
+#### 3. Performance en Production (Cache)
+
+En production, utiliser la Réflexion à chaque requête est lent. Vous pouvez activer la compilation pour générer un fichier PHP contenant toutes vos définitions et dépendances résolues.
+
+**Comment ça marche :**
+1. La première fois, il inspecte votre code et génère un fichier PHP.
+2. Les requêtes suivantes chargent directement ce fichier, contournant totalement la Réflexion.
+
+```php
+$builder = new ContainerBuilder();
+$builder->addDefinitions([/* ... */]);
+
+// Activer la compilation
+// Idéalement, faites ceci uniquement en production
+$builder->enableCompilation(__DIR__ . '/var/cache/container.php');
+
+$container = $builder->build();
+```
+
+> **Note :** Le compilateur découvre et compile récursivement toutes les dépendances pour une mise en cache "totale" de la résolution.
+
+#### 4. Remplacement de variables
+
+Vous pouvez utiliser des espaces réservés dans vos définitions de chaînes.
+
+```php
+$builder->addDefinitions([
+    'app.path' => '/var/www/html',
+    'app.log_file' => '#{app.path}/var/log/app.log',
+]);
+```
 
 ## License
 
-This library is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT License.

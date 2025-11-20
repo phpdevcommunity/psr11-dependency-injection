@@ -8,12 +8,14 @@ use PhpDevCommunity\DependencyInjection\Exception\NotFoundException;
 use Psr\Container\ContainerInterface;
 use Test\PhpDevCommunity\DependencyInjection\TestClass\Database;
 use  Test\PhpDevCommunity\DependencyInjection\TestClass\LazyService;
+use Depo\UniTester\TestCase;
+
 
 /**
  * Class AutoWireTest
  * @package Test\PhpDevCommunity\DependencyInjection
  */
-class ContainerTest extends \PhpDevCommunity\UniTester\TestCase
+class ContainerTest extends TestCase
 {
 
     protected function setUp(): void
